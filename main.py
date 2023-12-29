@@ -238,6 +238,6 @@ if __name__ == '__main__':
         basal_insulin = insulin_list[0]
         bolus_insulin = insulin_list[1]
         total_insulin = basal_insulin + bolus_insulin
-        print(f"From {starttimetz} to {endtimetz} for {patient_name}: \nTotal: {total_insulin:.2f} U \nBasal: {basal_insulin:.2f} U \nBolus: {bolus_insulin:.2f} U")
+        st.write(f"From {starttimetz} to {endtimetz} for {patient_name}: \nTotal: {total_insulin:.2f} U \nBasal: {basal_insulin:.2f} U \nBolus: {bolus_insulin:.2f} U")
         insulin_dic = {'Basal Insulin': basal_insulin, 'Bolus Insulin': bolus_insulin, 'Total Insulin': total_insulin}
         st.table(pd.DataFrame(insulin_dic, index=[0]))
