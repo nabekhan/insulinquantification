@@ -1,13 +1,8 @@
+from pickle import FALSE
+# @title Code Snip It
+
 """
 This script is designed to quantify the amount of insulin used within a selected time period.
-It must:
-1) Retrieve the profile of the patient for basal rates - done
-2) Retrieve the treatments of the patient such as temp basals and boluses - done
-3) Sum the boluses and the temp basals appropriately to get the total amount of insulin delivered
-    - It must account for potential profile changes within the selected period
-    - It must deal with a cancelled temp basal
-    - It must do this all with just a start time, end time, and ns url
-
 Approach:
 Retrieve all the data and create a dictionary of basals that can be referred to
 
@@ -61,14 +56,7 @@ def find_active_rate_at_time(current_time, profile_dict, temp_basal_dict):
 def find_next_temp_basal_start(current_time, temp_basal_dict):
     future_starts = [start_time for start_time in temp_basal_dict if start_time > current_time]
     return min(future_starts, default=datetime.max.replace(tzinfo=current_time.tzinfo))
-"""
-def find_temp_basal_duration(current_time, temp_basal_dict):
-    if current_time in temp_basal_dict:
-        future_starts = current_time + timedelta(minutes=int(temp_basal_dict[current_time]["duration"]))+timedelta(seconds=1)
-        return future_starts
-    else:
-        return datetime.max.replace(tzinfo=current_time.tzinfo)
-"""
+
 def find_temp_basal_duration(current_time, temp_basal_dict):
     for start_time, details in temp_basal_dict.items():
         end_time = start_time + timedelta(minutes=details['duration'])
@@ -175,7 +163,6 @@ class nightscout:
 
     def basalDic(self, starttime, endtime):
         profileurl = self.url + "api/v1/profiles?find[startDate][$gte]=" + starttime + "&find[startDate][$lte]=" + endtime + "&count=10000000"
-        print(profileurl)
         profile = retrievebasaldata(profileurl)
         return profile
 
@@ -185,62 +172,38 @@ class nightscout:
         bolus = retrievetreatmentdata(treatmenturl)[1]
         return [tempbasal, bolus]
 
-    # example url for retrieving profiles: https://scrappy.cgm.bcdiabetes.ca/api/v1/profiles?find[startDate][$gte]=2023-11-01&find[startDate][$lte]=2023-11-30&count=10000000
-    # example url for treatments:          https://scrappy.cgm.bcdiabetes.ca/api/v1/treatments.json?find[created_at][$gte]=2023-11-20&find[created_at][$lte]=2023-11-30&count=10000000
-
 def parseinputdatetime(str):
     date = str.split("t")[0]
     time = str.split("t")[1]
     datelist = [int(date.split("-")[0]), int(date.split("-")[1]), int(date.split("-")[2])]
     timelist = [int(time.split(":")[0]), int(time.split(":")[1])]
     return [datelist, timelist]
-"""
-    elif patient_name == "Nico":
-        ns_url = "https://1c037cb7-8e93-5457-b929-4b9861d6b3b6.cgm.bcdiabetes.ca/"
-        timezone = 'utc'.lower().strip()
-        if timezone == "pst":
-            settz = pytz.timezone("Canada/Pacific")
-        elif timezone == "utc":
-            settz = pytz.utc
-        else:
-            print("Invalid Timezone!")
 
-        starttimetz = "2023-12-20T08:00".lower().strip()
-        starttimetz = parseinputdatetime(starttimetz)
-        endtimetz = "2023-12-21T08:00".lower().strip()
-        endtimetz = parseinputdatetime(endtimetz)
-
-        starttimetz = datetime(starttimetz[0][0], starttimetz[0][1], starttimetz[0][2], starttimetz[1][0], starttimetz[1][1], tzinfo=settz)
-        endtimetz = datetime(endtimetz[0][0], endtimetz[0][1], endtimetz[0][2], endtimetz[1][0], endtimetz[1][1], tzinfo=settz)
-"""
 if __name__ == '__main__':
-    patient_name = input("Input Patient Name: ")
+    print("Thinking . . .")
+    PatientName = "subject#1breakfast" # @param {type:"string"}
+    PatientNSURL = "https://099889e3-4db0-524c-be0f-9f627f4c86b6.cgm.bcdiabetes.ca/" # @param {type:"string"}
+    StartDate = "2023-12-02T09:00" # @param {type:"string"}
+    EndDate = "2023-12-02T15:00" # @param {type:"string"}
+    Timezone = "PT" # @param {type:"string"}
+    patient_name = PatientName.strip()
     utc = pytz.utc
-    pst = pytz.timezone("Canada/Pacific")
-    if patient_name == "":
-        print("Running Trial... Pt Name: Scrappy; Pt URL: https://scrappy.cgm.bcdiabetes.ca/ between 2023-12-19 and 2023-12-20 PST")
-        patient_name = "Scrappy"
-        ns_url = "https://scrappy.cgm.bcdiabetes.ca/"
-        starttimetz = datetime(2023, 12, 19, 8, 0, 0, tzinfo=utc)
-        endtimetz = datetime(2023, 12, 20, 8, 0, 0, tzinfo=utc)
-
+    ns_url = PatientNSURL.strip()
+    timezone = Timezone.lower().strip()
+    if timezone == "pt":
+        settz = pytz.timezone("PST8PDT")
+    elif timezone == "utc":
+        settz = pytz.utc
     else:
-        ns_url = input("Input Nightscout URL (ex: https://scrappy.cgm.bcdiabetes.ca/): ").strip()
-        timezone = input('Input Timezone (valid options are "pst" or "utc"): ').lower().strip()
-        if timezone == "pst":
-            settz = pytz.timezone("Canada/Pacific")
-        elif timezone == "utc":
-            settz = pytz.utc
-        else:
-            print("Invalid Timezone!")
+        print("Invalid Timezone!")
 
-        starttimetz = input('Enter your start date and time (ex: 2017-12-31T23:12): ').lower().strip()
-        starttimetz = parseinputdatetime(starttimetz)
-        endtimetz = input('Enter your end date and time (ex: 2017-12-31T23:22): ').lower().strip()
-        endtimetz = parseinputdatetime(endtimetz)
+    starttimetz = StartDate.lower().strip()
+    starttimetz = parseinputdatetime(starttimetz)
+    endtimetz = EndDate.lower().strip()
+    endtimetz = parseinputdatetime(endtimetz)
 
-        starttimetz = datetime(starttimetz[0][0], starttimetz[0][1], starttimetz[0][2], starttimetz[1][0], starttimetz[1][1], tzinfo=settz)
-        endtimetz = datetime(endtimetz[0][0], endtimetz[0][1], endtimetz[0][2], endtimetz[1][0], endtimetz[1][1], tzinfo=settz)
+    starttimetz = datetime(starttimetz[0][0], starttimetz[0][1], starttimetz[0][2], starttimetz[1][0], starttimetz[1][1], tzinfo=settz)
+    endtimetz = datetime(endtimetz[0][0], endtimetz[0][1], endtimetz[0][2], endtimetz[1][0], endtimetz[1][1], tzinfo=settz)
 
     starttime = starttimetz.astimezone(utc)
     endtime = endtimetz.astimezone(utc)
@@ -250,6 +213,12 @@ if __name__ == '__main__':
     start_time = starttime - timedelta(days=buffer)
     end_time = endtime + timedelta(days=buffer)
     profile_dict = nightscout.basalDic(ns, str(start_time.date()), str(end_time.date()))
+
+    while not profile_dict:
+        buffer = buffer + 15
+        start_time = start_time - timedelta(days=buffer)
+        profile_dict = nightscout.basalDic(ns, str(start_time.date()), str(end_time.date()))
+
     while sorted(profile_dict.items())[0][0] > starttime:
         buffer = buffer + 15
         start_time = start_time - timedelta(days=buffer)
@@ -264,5 +233,4 @@ insulin_list = calculate_insulin_delivery(profile_dict, temp_basal_dict, bolus_d
 basal_insulin = insulin_list[0]
 bolus_insulin = insulin_list[1]
 total_insulin = basal_insulin + bolus_insulin
-
-print(f"Total insulin delivered from {starttimetz} to {endtimetz}: {total_insulin:.2f} units. Basal: {basal_insulin:.2f} and Bolus: {bolus_insulin:.2f}")
+print(f"From {starttimetz} to {endtimetz} for {patient_name}: \nTotal: {total_insulin:.2f} U \nBasal: {basal_insulin:.2f} U \nBolus: {bolus_insulin:.2f} U")
