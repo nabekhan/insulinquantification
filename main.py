@@ -2,15 +2,16 @@ from pickle import FALSE
 # @title Code Snip It
 
 """
-This script is designed to quantify the amount of insulin used within a selected time period.
-Approach:
-Retrieve all the data and create a dictionary of basals that can be referred to
+This script is designed to quantify the amount of insulin delivered within a selected time period.
 
 """
 import urllib.request
 import json
 import pytz
 from datetime import datetime, timedelta
+import streamlit as st
+import pandas as pd
+import numpy as np
 def calculate_insulin_delivery(profile_dict, temp_basal_dict, bolus_dict, start_time, end_time):
     basal_insulin = 0
     bolus_insulin = 0
@@ -180,57 +181,63 @@ def parseinputdatetime(str):
     return [datelist, timelist]
 
 if __name__ == '__main__':
-    print("Thinking . . .")
-    PatientName = "subject#1breakfast" # @param {type:"string"}
-    PatientNSURL = "https://099889e3-4db0-524c-be0f-9f627f4c86b6.cgm.bcdiabetes.ca/" # @param {type:"string"}
-    StartDate = "2023-12-02T09:00" # @param {type:"string"}
-    EndDate = "2023-12-02T15:00" # @param {type:"string"}
-    Timezone = "PT" # @param {type:"string"}
-    patient_name = PatientName.strip()
-    utc = pytz.utc
-    ns_url = PatientNSURL.strip()
-    timezone = Timezone.lower().strip()
-    if timezone == "pt":
-        settz = pytz.timezone("PST8PDT")
-    elif timezone == "utc":
-        settz = pytz.utc
-    else:
-        print("Invalid Timezone!")
+    with st.form(key='my_form_to_submit'):
+        PatientName = st.text_input("Patient Name")
+        PatientNSURL = st.text_input("Patient NS URL (ex: https://vanbunbury.cgm.bcdiabetes.ca/)")
+        StartDate = st.text_input("Start datetime (ex: 2023-12-02T09:00)")
+        EndDate = st.text_input("End datetime (ex: 2023-12-02T09:00)")
+        Timezone = st.text_input("Timezone (only PT and UTC are accepted right now)")
+        submit_button = st.form_submit_button(label='Submit')
 
-    starttimetz = StartDate.lower().strip()
-    starttimetz = parseinputdatetime(starttimetz)
-    endtimetz = EndDate.lower().strip()
-    endtimetz = parseinputdatetime(endtimetz)
+    if submit_button:
+        st.write("Thinking . . .")
+        patient_name = PatientName.strip()
+        utc = pytz.utc
+        ns_url = PatientNSURL.strip()
+        timezone = Timezone.lower().strip()
+        if timezone == "pt":
+            settz = pytz.timezone("PST8PDT")
+        elif timezone == "utc":
+            settz = pytz.utc
+        else:
+            print("Invalid Timezone!")
 
-    starttimetz = datetime(starttimetz[0][0], starttimetz[0][1], starttimetz[0][2], starttimetz[1][0], starttimetz[1][1], tzinfo=settz)
-    endtimetz = datetime(endtimetz[0][0], endtimetz[0][1], endtimetz[0][2], endtimetz[1][0], endtimetz[1][1], tzinfo=settz)
+        starttimetz = StartDate.lower().strip()
+        starttimetz = parseinputdatetime(starttimetz)
+        endtimetz = EndDate.lower().strip()
+        endtimetz = parseinputdatetime(endtimetz)
 
-    starttime = starttimetz.astimezone(utc)
-    endtime = endtimetz.astimezone(utc)
+        starttimetz = datetime(starttimetz[0][0], starttimetz[0][1], starttimetz[0][2], starttimetz[1][0], starttimetz[1][1], tzinfo=settz)
+        endtimetz = datetime(endtimetz[0][0], endtimetz[0][1], endtimetz[0][2], endtimetz[1][0], endtimetz[1][1], tzinfo=settz)
 
-    ns = nightscout(patient_name, ns_url)
-    buffer = 3
-    start_time = starttime - timedelta(days=buffer)
-    end_time = endtime + timedelta(days=buffer)
-    profile_dict = nightscout.basalDic(ns, str(start_time.date()), str(end_time.date()))
+        starttime = starttimetz.astimezone(utc)
+        endtime = endtimetz.astimezone(utc)
 
-    while not profile_dict:
-        buffer = buffer + 15
-        start_time = start_time - timedelta(days=buffer)
+        ns = nightscout(patient_name, ns_url)
+        buffer = 3
+        start_time = starttime - timedelta(days=buffer)
+        end_time = endtime + timedelta(days=buffer)
         profile_dict = nightscout.basalDic(ns, str(start_time.date()), str(end_time.date()))
 
-    while sorted(profile_dict.items())[0][0] > starttime:
-        buffer = buffer + 15
-        start_time = start_time - timedelta(days=buffer)
-        profile_dict = nightscout.basalDic(ns, str(start_time.date()), str(end_time.date()))
+        while not profile_dict:
+            buffer = buffer + 15
+            start_time = start_time - timedelta(days=buffer)
+            profile_dict = nightscout.basalDic(ns, str(start_time.date()), str(end_time.date()))
+
+        while sorted(profile_dict.items())[0][0] > starttime:
+            buffer = buffer + 15
+            start_time = start_time - timedelta(days=buffer)
+            profile_dict = nightscout.basalDic(ns, str(start_time.date()), str(end_time.date()))
 
 
-    treatment_dict = nightscout.treatmentDic(ns, str(start_time.date()), str(end_time.date()))
-    temp_basal_dict = treatment_dict[0]
-    bolus_dict = treatment_dict[1]
+        treatment_dict = nightscout.treatmentDic(ns, str(start_time.date()), str(end_time.date()))
+        temp_basal_dict = treatment_dict[0]
+        bolus_dict = treatment_dict[1]
 
-insulin_list = calculate_insulin_delivery(profile_dict, temp_basal_dict, bolus_dict, starttime, endtime)
-basal_insulin = insulin_list[0]
-bolus_insulin = insulin_list[1]
-total_insulin = basal_insulin + bolus_insulin
-print(f"From {starttimetz} to {endtimetz} for {patient_name}: \nTotal: {total_insulin:.2f} U \nBasal: {basal_insulin:.2f} U \nBolus: {bolus_insulin:.2f} U")
+        insulin_list = calculate_insulin_delivery(profile_dict, temp_basal_dict, bolus_dict, starttime, endtime)
+        basal_insulin = insulin_list[0]
+        bolus_insulin = insulin_list[1]
+        total_insulin = basal_insulin + bolus_insulin
+        print(f"From {starttimetz} to {endtimetz} for {patient_name}: \nTotal: {total_insulin:.2f} U \nBasal: {basal_insulin:.2f} U \nBolus: {bolus_insulin:.2f} U")
+        insulin_dic = {'Basal Insulin': basal_insulin, 'Bolus Insulin': bolus_insulin, 'Total Insulin': total_insulin}
+        st.table(pd.DataFrame(insulin_dic, index=[0]))
