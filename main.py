@@ -99,7 +99,7 @@ if __name__ == "__main__":
         endtime   = end_local.astimezone(timezone.utc)
 
         # 4.  Show / use the results
-        st.success("Times converted to UTC:")
+        st.write("Times converted to UTC:")
         st.write("Start (UTC):", starttime.isoformat())
         st.write("End   (UTC):", endtime.isoformat())
 
@@ -121,6 +121,6 @@ if __name__ == "__main__":
         basal_insulin = insulin_list[0]
         bolus_insulin = insulin_list[1]
         total_insulin = basal_insulin + bolus_insulin
-        st.write(f"From {start_local} to {end_local}:")
+        st.success(f"Insulin from {start_local} to {end_local}:")
         insulin_dic = {'Basal Insulin (U)': basal_insulin, 'Bolus Insulin (U)': bolus_insulin, 'Total Insulin (U)': total_insulin}
         st.table(pd.DataFrame(insulin_dic, index=[1]))
