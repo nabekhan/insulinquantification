@@ -1,6 +1,5 @@
 from dataretriever import *
 import pytz
-import streamlit as st
 
 # assumes default profile is being used !!!! MAY NOT WORK WITH MULTIPROFILE IN LOOP/AAPS!!!
 def basalprofiles(profiles):

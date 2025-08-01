@@ -5,7 +5,6 @@ from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 import json
 from timecleaner import *
-from private.examplens import *
 
 def dataFetcher(
         ptID: str,
