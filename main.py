@@ -87,7 +87,6 @@ if __name__ == "__main__":
 
     # 3.  Build aware datetimes and convert to UTC
     if submitted:
-        st.write("Thinking …")
         start_local = datetime.combine(start_date, start_time, tzinfo=tz)
         end_local   = datetime.combine(end_date,   end_time,   tzinfo=tz)
 
