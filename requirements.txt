@@ -3,6 +3,7 @@ streamlit>=1.33
 streamlit-tz
 tzdata
 pandas
+matplotlib
 
 # Needed for Python < 3.9 if you're not using zoneinfo from stdlib
 backports.zoneinfo; python_version < "3.9"

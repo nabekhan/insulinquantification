@@ -5,20 +5,21 @@ This script is designed to quantify the amount of insulin delivered within a sel
 #  $ pip install streamlit streamlit-tz tzdata  (tzdata for servers w/o zoneinfo DB)
 from basalinsulin import basalinsulin
 from treatmentinsulin import treatmentinsulin
+from glucosereadings import glucosereadings
 import streamlit as st
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo            # stdlib ≥3.9
 from streamlit_tz import streamlit_tz    # community component
 import streamlit as st
 import pandas as pd
-from calculator import calculate_insulin_delivery
+from insulincalculator import calculate_insulin_delivery, hourly_insulin_plot
+from glucosecalculator import *
 from datetime import time
 
 def get_default(key, default_val):
     if key not in st.session_state:
         st.session_state[key] = default_val
     return st.session_state[key]
-
 
 # build a dict of “America/…” zones (+ UTC)
 def build_america_timezones() -> dict[str, str]:
@@ -111,15 +112,26 @@ if __name__ == "__main__":
         basaldic = basalinsulin(nsid, starttime_naive, endtime_naive)
 
         # Get treatment insulin
-
         treatmentdic = treatmentinsulin(nsid, starttime_naive, endtime_naive)
         tempdic = treatmentdic[0]
         bolusdic = treatmentdic[1]
 
+        # Get glucose
+        glucosedic = glucosereadings(nsid, starttime_naive, endtime_naive)
+
+        # Calculate insulin delivery
         insulin_list = calculate_insulin_delivery(basaldic, tempdic, bolusdic, starttime, endtime)
         basal_insulin = insulin_list[0]
         bolus_insulin = insulin_list[1]
         total_insulin = basal_insulin + bolus_insulin
+        hourly_insulin = insulin_list[2]
+
+        # Calculate Glucose
+        avgglucose = average_glucose(glucosedic, starttime, endtime)
+
+        # Output
         st.success(f"Insulin from {start_local} to {end_local}:")
-        insulin_dic = {'Basal Insulin (U)': basal_insulin, 'Bolus Insulin (U)': bolus_insulin, 'Total Insulin (U)': total_insulin}
+        insulin_dic = {'Basal Insulin (U)': basal_insulin, 'Bolus Insulin (U)': bolus_insulin, 'Total Insulin (U)': total_insulin, 'Average Glucose (mM)': avgglucose}
         st.table(pd.DataFrame(insulin_dic, index=[1]))
+        st.pyplot(hourly_insulin_plot(hourly_insulin, tz))
+        st.pyplot(avg_glucose_plot(glucosedic, starttime, endtime, 30, tz))

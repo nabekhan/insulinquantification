@@ -27,5 +27,5 @@ def treatmentinsulin(nsid, startdate, enddate):
     outputdata = dataFetcher(nsid, "treatments", startdate, enddate)
     #[print(n) for n in outputdata]
     tempdic, bolusdic = treatmenttimes(outputdata)
-    print(tempdic, bolusdic)
+    #print(tempdic, bolusdic)
     return tempdic, bolusdic

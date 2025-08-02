@@ -3,6 +3,8 @@ def timestampvariable(type):
         entrydatevariable = "created_at"
     elif type == "profiles":
         entrydatevariable = "startDate"
+    elif type == "entries":
+        entrydatevariable = "dateString"
     else:
         raise ValueError("Inappropriate type entered!")
 
