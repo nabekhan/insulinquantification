@@ -35,7 +35,7 @@ def calculate_insulin_delivery(basalinsulin, tempdic, bolusdic, start_time, end_
         basal_insulin += insulin_amount
 
         # Log it by hour
-        hour_key = current_time.replace(minute=0, second=0, microsecond=0)
+        hour_key = (current_time.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
         hourly_delivery[hour_key]['basal'] += insulin_amount
 
         # Move forward
@@ -46,7 +46,7 @@ def calculate_insulin_delivery(basalinsulin, tempdic, bolusdic, start_time, end_
     for bolus_time, bolus_amount in bolusdic.items():
         if start_time <= bolus_time < end_time:
             bolus_insulin += bolus_amount
-            hour_key = bolus_time.replace(minute=0, second=0, microsecond=0)
+            hour_key = (bolus_time.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
             hourly_delivery[hour_key]['bolus'] += bolus_amount
 
     # add percentage breakdown per hour

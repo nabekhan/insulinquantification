@@ -43,7 +43,7 @@ def avg_glucose_plot(glucose_data: dict, start_datetime: datetime, end_datetime:
     df = df.loc[start_datetime:end_datetime]
 
     # Resample to 30-minute intervals
-    resampled = df.resample(f"{minutes}T").mean()
+    resampled = df.resample(f"{minutes}T", label='right').mean()
 
     # Create plot
     fig, ax = plt.subplots(figsize=(10, 5))
