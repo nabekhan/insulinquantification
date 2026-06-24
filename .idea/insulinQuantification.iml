@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/private" />
       <excludeFolder url="file://$MODULE_DIR$/ptData" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9 (insulinQuantification)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.14 (insulinquantification)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

@@ -21,8 +21,6 @@ def dataFetcher(
 
     timestamp = timestampvariable(type)
     builtURL = urlformater(ptID, type, startDate, endDate)
-    # print(builtURL)
-    # print(f"Scanning between {startDate} and {endDate}: {builtURL}")
 
     for attempt in range(max_retries):
         try:
